@@ -1,24 +1,63 @@
-import logo from './logo.svg';
-import './App.css';
-
+import { useEffect, useState } from "react";
+import Data from "./Data";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
+import Googledrivelogo from "./assets/googledrivelogo.png";
+import { auth } from "./FirebaseConfig";
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+} from "firebase/auth";
 function App() {
+  const [user, setUser] = useState(null);
+  const [userAuth, setUserAuth] = useState("");
+
+  const SignIn = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then(({ user }) => {
+        console.log(user);
+        setUser(user);
+      })
+      .catch((error) => {
+        console.log(error.message);
+      });
+  };
+
+  const getAuth = () => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserAuth(user);
+      } else {
+        setUserAuth(null);
+      }
+    });
+  };
+
+  useEffect(() => {
+    getAuth();
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      {userAuth ? (
+        <>
+          <Header user={userAuth} />
+          <div className="App">
+            <Sidebar user={userAuth} />
+            <Data user={userAuth} />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="loginWrap">
+            <img src={Googledrivelogo} alt="googledriveimg" />
+            <button onClick={SignIn}>Login To Google Drive Clone</button>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
